@@ -1,0 +1,33 @@
+{
+  "name": "studyhelp",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "index.js",
+ "scripts": {
+  "dev": "nodemon app.js",
+  "start": "node app.js",
+  "init_db": "node db/database.js",
+  "seed_db": "node db/database.js seed",
+  "build frontend": "cd ../frontend && npm run build"
+},
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "cookie-parser": "^1.4.7",
+    "dotenv": "^17.2.3",
+    "express": "^5.2.1",
+    "express-rate-limit": "^8.2.1",
+    "express-session": "^1.18.2",
+    "helmet": "^8.1.0",
+    "nodemailer": "^7.0.10",
+    "nodemon": "^3.1.11",
+    "socket.io": "^4.8.1",
+    "sqlite": "^5.1.1",
+    "sqlite3": "^5.1.7"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.11"
+  }
+}
