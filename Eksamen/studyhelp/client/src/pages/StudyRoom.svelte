@@ -11,6 +11,7 @@
   let roomLoading = true
   let studyMessages = []
   let newStudyMessage = ''
+  let onlineUsers = []
 
   const BASE_URL = import.meta.env.VITE_BASE_URL || window.location.origin
 
@@ -38,12 +39,23 @@
       studyMessages = [...studyMessages, message]
     }
 
+    const handlePresence = users => {
+      onlineUsers = users
+    }
+
     socket.on('study:history', handleHistory)
     socket.on('study:message', handleIncoming)
+    socket.on('study:presence', handlePresence)
+
+    const activeUser = get(user)
+    socket.emit('study:join', {
+      user: activeUser.username || 'Student'
+    })
 
     return () => {
       socket.off('study:history', handleHistory)
       socket.off('study:message', handleIncoming)
+      socket.off('study:presence', handlePresence)
     }
   }
 
@@ -73,9 +85,7 @@
       return
     }
 
-    const activeUser = get(user)
     socket.emit('study:message', {
-      user: activeUser.username || 'Student',
       text: newStudyMessage.trim()
     })
     newStudyMessage = ''
@@ -95,6 +105,16 @@
       <h1>Study Room</h1>
       <button on:click={() => navigate('/profile')}>Back to Profile</button>
     </header>
+    <div class="presence">
+      <span>{onlineUsers.length} online</span>
+      {#if onlineUsers.length > 0}
+        <ul class="presence-list">
+          {#each onlineUsers as participant (participant.id)}
+            <li>{participant.username}</li>
+          {/each}
+        </ul>
+      {/if}
+    </div>
 
     <ul class="study-messages">
       {#if studyMessages.length === 0}

@@ -16,6 +16,13 @@ db.exec(`CREATE TABLE IF NOT EXISTS users(
     role TEXT DEFAULT 'USER' CHECK(role IN ('ADMIN', 'USER'))
   )`)
 
+db.exec(`CREATE TABLE IF NOT EXISTS study_messages(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user TEXT NOT NULL,
+    text TEXT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  )`)
+
   if (clearMode) {
   console.log('🧹 Clearing users table...')
   db.run('DELETE FROM users')
@@ -30,5 +37,4 @@ if (seedMode) {
     [process.env.ADMIN_USERNAME, hashedPassword, process.env.ADMIN_EMAIL, process.env.ADMIN_CODE, 1, 'ADMIN']
   )
 }
-
 

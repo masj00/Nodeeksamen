@@ -2,6 +2,7 @@
     import {fetchPost} from '../../util/fetchUtil.js'
     import { navigate } from "svelte-routing";
     import toastrDisplayHTTPCode from "../../util/ToastrUtil.js"
+    import './pagesCss/login.css';
 
   let email;
   let password;
@@ -57,7 +58,8 @@
 {#if !isSignup}
 <h1>Login Page</h1>
 
-<form on:submit={handleLogin}>
+<form class="auth-form" on:submit={handleLogin}>
+
     <div>
         <label for="email">email:</label>
         <input id="email" type="email" bind:value={email} required />
@@ -80,7 +82,8 @@
 {#if isSignup}
 <h1>Signup Page</h1>
 
-<form on:submit={handleSignup}>
+<form class="auth-form" on:submit={handleSignup}>
+
     <div>
         <label for="email">email:</label>
         <input id="email" type="email" bind:value={email} required />

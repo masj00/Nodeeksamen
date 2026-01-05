@@ -21,7 +21,7 @@ function isLoggedIn (req, res, next) {
   if (req.session.user) {
     return next()
   }
-  res.status(401).send({ message: 'you need to be logged in to acess this content' })
+  res.status(401).send({ message: 'you need to be logged in to access this content' })
 }
 
 router.get('/users/id', isLoggedIn, async (req, res) => {
@@ -86,7 +86,7 @@ router.post('/api/users', async (req, res) => {
     // email needs to be sent
     sendMail(email, 'verify signup', 'welcome to the front soldier', signupHTML)
 
-    return res.status(201).send({ message: 'User created successfully a email has been sent with the ferification code' })
+    return res.status(201).send({ message: 'User created successfully a email has been sent with the verification code' })
   } catch (error) {
     console.error(error)
     return res.status(500).send({ message: 'server error', error: error.message })
@@ -104,7 +104,7 @@ router.post('/api/vaify', async (req, res) => {
     }
 
     if (user.verified === 1) {
-      return res.status(403).send({ message: 'this user is already varified' })
+      return res.status(403).send({ message: 'this user is already verified' })
     }
 
     await db.run('UPDATE users SET verified = 1 WHERE verification_code = ?', verificationCode)
