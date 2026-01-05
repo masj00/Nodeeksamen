@@ -1,0 +1,23 @@
+Add sockets end to end. Implement a feature that clearly uses socket.io (server + client) so you can demo real-time behavior.
+
+(Socket.io now wraps Express and maintains a rolling “Study Room” message history, so any client can join and broadcast tips in real time (server/app.js (lines 1-108)). Each connection immediately receives the current history, and the server sanitizes/limits incoming payloads before emitting to everyone.
+
+To support the new UI flow, the auth router exposes a logout endpoint that destroys the session and clears the cookie (server/routers/authRoutes.js (lines 120-129)).
+
+The profile view is now the hub for real-time collaboration: after confirming the session it opens a socket.io-client connection, listens for history + live messages, and renders a chat feed plus send form; logout reuses the new API (client/src/pages/Profile.svelte (lines 1-120)).
+
+Client dependencies include socket.io-client so remember to install/update packages (client/package.json (lines 16-21), run npm install inside client). Restart the server (npm run dev in server) so the new HTTP+Socket.IO setup takes effect, and run the Vite dev server to test chatting between two browsers.
+
+I didn’t run automated tests (none defined); please exercise login + chat manually in two tabs to verify broadcasts reach everyone.)
+
+
+
+Flesh out authorization beyond simple login. For example, admin-only routes/pages or role-based UI; enforce the same on the server.
+
+Polish the UI/UX: replace the placeholder home page, style the login/signup/profile views, add clear flows and validation. Make sure you can demo several distinct user-facing features.
+
+Remove dev-only logs/console output; ensure .env secrets aren’t committed. Add basic GDPR touches: cookie notice, clear data-handling info.
+
+Document how to run the project (README) and test the DB access via terminal queries so you can demonstrate that during the exam.
+
+Plan the demo: list 5–6 user-facing features you can show without diving into code, prep accounts (especially an already logged-in user), and make sure sockets/auth flows are smooth.
