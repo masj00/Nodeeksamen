@@ -169,6 +169,43 @@ button:hover {
   flex-wrap: wrap;
 }
 
+.presence {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  padding: 0.75rem 1rem;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.presence span {
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.presence-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.75rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.presence-list li {
+  padding: 0.35rem 0.9rem;
+  border-radius: 999px;
+  background: rgba(125, 217, 255, 0.16);
+  border: 1px solid rgba(125, 217, 255, 0.35);
+}
+
 .study-messages {
   list-style: none;
   padding: 0;
