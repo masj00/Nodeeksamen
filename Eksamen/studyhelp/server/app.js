@@ -6,8 +6,55 @@ import path from 'path'
 import helmet from 'helmet'
 import { rateLimit } from 'express-rate-limit'
 import session from 'express-session'
+import http from 'http'
+import { Server } from 'socket.io'
 
 const app = express()
+const server = http.createServer(app)
+
+const io = new Server(server, {
+  cors: {
+    origin: 'http://localhost:5173',
+    credentials: true
+  }
+})
+
+const studyMessages = []
+
+io.on('connection', socket => {
+  console.log('socket connected', socket.id) //skal væk senere
+
+  socket.emit('study:history', studyMessages)
+
+  socket.on('study:message', payload => {
+    if (!payload || typeof payload.text !== 'string') {
+      return
+    }
+
+    const trimmedText = payload.text.trim()
+    if (trimmedText.length === 0) {
+      return
+    }
+
+    const cleanMessage = {
+      id: Date.now(),
+      user: (payload.user && payload.user.toString().slice(0, 40)) || 'Anonymous',
+      text: trimmedText.slice(0, 400),
+      createdAt: new Date().toISOString()
+    }
+
+    studyMessages.push(cleanMessage)
+    if (studyMessages.length > 20) {
+      studyMessages.shift()
+    }
+
+    io.emit('study:message', cleanMessage)
+  })
+
+  socket.on('disconnect', () => {
+    console.log('socket disconnected', socket.id) //skal væk senere
+  })
+})
 
 
 app.use(cors({
@@ -56,6 +103,6 @@ app.all('/{*splat}', (req, res) => {
 })
 
 const PORT = 8080
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log('Server is running on port:', PORT)
 })

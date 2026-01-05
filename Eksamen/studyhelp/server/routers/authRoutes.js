@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import auth from './../util/encrypter.js'
+import auth from '../util/encrypter.js'
 import db from '../db/connection.js'
 import sendMail from '../util/nodeMailer.js'
 import crypto from 'crypto'
@@ -104,16 +104,29 @@ router.post('/api/vaify', async (req, res) => {
     }
 
     if (user.verified === 1) {
-      return res.status(403).send({ message: 'this user is allready varified' })
+      return res.status(403).send({ message: 'this user is already varified' })
     }
 
     await db.run('UPDATE users SET verified = 1 WHERE verification_code = ?', verificationCode)
 
-    return res.status(200).send({ message: 'vaification successful' })
+    return res.status(200).send({ message: 'verification successful' })
   } catch (error) {
     console.error(error)
     return res.status(500).send({ message: 'server error', error: error.message })
   }
-})
+});
+
+
+router.post('/api/logout', (req, res) => {
+  req.session.destroy(err => {
+    if (err) {
+      console.error(err)
+      return res.status(500).send({ message: 'failed to log out' })
+    }
+    res.clearCookie('connect.sid')
+    return res.status(200).send({ message: 'logged out' })
+  })
+});
+
 
 export default router
