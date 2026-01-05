@@ -1,0 +1,69 @@
+.auth-form {
+  max-width: 420px;
+  margin: 3rem auto;
+  padding: 2.5rem 2.75rem;
+  background: rgba(12, 20, 36, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 24px;
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.45);
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+.auth-form h1 {
+  text-align: center;
+  margin-bottom: 1rem;
+  letter-spacing: 0.05em;
+}
+
+.auth-form label {
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  opacity: 0.7;
+}
+
+.auth-form input {
+    width: 80%;
+  padding: 0.9rem 1.1rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.15);
+  background: rgba(255,255,255,0.04);
+  color: inherit;
+  font-size: 1rem;
+  transition: border-color .2s ease, box-shadow .2s ease;
+}
+
+.auth-form input:focus {
+  outline: none;
+  border-color: #7dd9ff;
+  box-shadow: 0 0 0 2px rgba(125,217,255,0.25);
+}
+
+.auth-form button {
+  margin-top: 1rem;
+  border-radius: 999px;
+  padding: 0.9rem 1.6rem;
+  font-weight: 600;
+  background: linear-gradient(120deg, #5ca9ff, #7ee8fa);
+  color: #0a0f1a;
+  border: none;
+  cursor: pointer;
+}
+
+.auth-form button:hover {
+  transform: translateY(-2px);
+}
+
+.auth-form .switch {
+  text-align: center;
+  font-size: 0.85rem;
+  opacity: 0.7;
+  cursor: pointer;
+}
+
+.auth-form .switch:hover {
+  color: #7dd9ff;
+}

@@ -56,10 +56,9 @@
 </script>
 
 {#if !isSignup}
-<h1>Login Page</h1>
 
 <form class="auth-form" on:submit={handleLogin}>
-
+<h1>Login</h1>
     <div>
         <label for="email">email:</label>
         <input id="email" type="email" bind:value={email} required />
@@ -73,17 +72,16 @@
     <button type="submit">Login</button>
 
     <button type="button" on:click={() => isSignup = true}>
-        Go to Signup
+        Register New Account
     </button>
 </form>
 {/if}
 
 
 {#if isSignup}
-<h1>Signup Page</h1>
 
 <form class="auth-form" on:submit={handleSignup}>
-
+<h1>Register New Account</h1>
     <div>
         <label for="email">email:</label>
         <input id="email" type="email" bind:value={email} required />
