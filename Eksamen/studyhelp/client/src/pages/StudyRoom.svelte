@@ -4,14 +4,21 @@
   import { navigate } from 'svelte-routing'
   import { io } from 'socket.io-client'
   import { user } from '../store/userStore'
-  import { fetchGet } from '../../util/fetchUtil'
+  import { fetchGet, fetchPost } from '../../util/fetchUtil'
   import toastrDisplayHTTPCode from '../../util/ToastrUtil.js'
 
   let socket
-  let roomLoading = true
+  let cleanupListeners = null
+
+  let rooms = []
+  let roomsLoading = true
+  let selectedRoom = null
+
+  let roomLoading = false
   let studyMessages = []
-  let newStudyMessage = ''
   let onlineUsers = []
+  let newStudyMessage = ''
+  let newRoomName = ''
 
   const BASE_URL = import.meta.env.VITE_BASE_URL || window.location.origin
 
@@ -26,48 +33,123 @@
     return true
   }
 
-  function initSocket () {
+  async function loadRooms () {
+    roomsLoading = true
+    const response = await fetchGet('/api/rooms')
+    if (response.status !== 200) {
+      toastrDisplayHTTPCode(response.status, response.data.message)
+      rooms = []
+      roomsLoading = false
+      return
+    }
+    rooms = response.data.rooms
+    roomsLoading = false
+
+    if (rooms.length === 0) {
+      if (cleanupListeners) {
+        cleanupListeners()
+        cleanupListeners = null
+      }
+      if (socket) {
+        socket.disconnect()
+        socket = null
+      }
+      selectedRoom = null
+      studyMessages = []
+      onlineUsers = []
+      roomLoading = false
+      return
+    }
+
+    const currentId = selectedRoom?.id
+    if (!currentId) {
+      handleRoomSelect(rooms[0])
+      return
+    }
+
+    const match = rooms.find(room => room.id === currentId)
+    if (match) {
+      selectedRoom = match
+      return
+    }
+
+    handleRoomSelect(rooms[0])
+  }
+
+  function handleRoomSelect (room) {
+    if (!room) return
+    if (selectedRoom && selectedRoom.id === room.id) return
+    selectedRoom = room
+    connectToSelectedRoom()
+  }
+
+  function connectToSelectedRoom () {
+    if (!selectedRoom) {
+      return
+    }
+
+    if (cleanupListeners) {
+      cleanupListeners()
+      cleanupListeners = null
+    }
+    if (socket) {
+      socket.disconnect()
+      socket = null
+    }
+
+    studyMessages = []
+    onlineUsers = []
+    roomLoading = true
+
     socket = io(BASE_URL, {
       withCredentials: true
     })
 
-    const handleHistory = history => {
-      studyMessages = history
+    const handleHistory = payload => {
+      if (payload.roomId !== selectedRoom?.id) return
+      studyMessages = payload.messages
+      roomLoading = false
     }
 
-    const handleIncoming = message => {
-      studyMessages = [...studyMessages, message]
+    const handleIncoming = payload => {
+      if (payload.roomId !== selectedRoom?.id) return
+      studyMessages = [...studyMessages, payload.message]
     }
 
-    const handlePresence = users => {
-      onlineUsers = users
+    const handlePresence = payload => {
+      if (payload.roomId !== selectedRoom?.id) return
+      onlineUsers = payload.participants
+    }
+
+    const handleError = payload => {
+      toastrDisplayHTTPCode(400, payload?.message || 'Socket error')
     }
 
     socket.on('study:history', handleHistory)
     socket.on('study:message', handleIncoming)
     socket.on('study:presence', handlePresence)
+    socket.on('study:error', handleError)
 
     const activeUser = get(user)
     socket.emit('study:join', {
+      roomId: selectedRoom.id,
       user: activeUser.username || 'Student'
     })
 
-    return () => {
+    cleanupListeners = () => {
       socket.off('study:history', handleHistory)
       socket.off('study:message', handleIncoming)
       socket.off('study:presence', handlePresence)
+      socket.off('study:error', handleError)
     }
   }
-
-  let cleanupListeners = null
 
   onMount(async () => {
     const ready = await ensureSession()
     if (!ready) {
       return
     }
-    cleanupListeners = initSocket()
-    roomLoading = false
+    await loadRooms()
   })
 
   onDestroy(() => {
@@ -81,7 +163,7 @@
 
   function sendStudyMessage (event) {
     event.preventDefault()
-    if (!socket || !newStudyMessage.trim()) {
+    if (!socket || !selectedRoom || !newStudyMessage.trim()) {
       return
     }
 
@@ -91,56 +173,119 @@
     newStudyMessage = ''
   }
 
+  async function createRoom (event) {
+    event.preventDefault()
+    if (!newRoomName.trim()) {
+      return
+    }
+    const response = await fetchPost('/api/rooms', { name: newRoomName })
+    toastrDisplayHTTPCode(response.status, response.message)
+    if (response.status === 201) {
+      rooms = [...rooms, response.room]
+      newRoomName = ''
+      handleRoomSelect(response.room)
+    }
+  }
+
   function formatTime (value) {
     if (!value) return ''
     return new Date(value).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
   }
 </script>
 
-{#if roomLoading}
-  <p>Joining study room…</p>
+{#if roomsLoading}
+  <p>Loading rooms...</p>
 {:else}
-  <section class="study-room">
-    <header>
-      <h1>Study Room</h1>
-      <button on:click={() => navigate('/profile')}>Back to Profile</button>
-    </header>
-    <div class="presence">
-      <span>{onlineUsers.length} online</span>
-      {#if onlineUsers.length > 0}
-        <ul class="presence-list">
-          {#each onlineUsers as participant (participant.id)}
-            <li>{participant.username}</li>
+  <div class="room-layout">
+    <aside class="room-sidebar">
+      <div class="sidebar-header">
+        <h2>Study Rooms</h2>
+        <button class="link-button" type="button" on:click={() => loadRooms()}>Refresh</button>
+      </div>
+      <ul class="room-list">
+        {#if rooms.length === 0}
+          <li class="empty">No rooms yet. Be the first to create one!</li>
+        {:else}
+          {#each rooms as room (room.id)}
+            <li class:selected={selectedRoom && selectedRoom.id === room.id}>
+              <button type="button" on:click={() => handleRoomSelect(room)}>
+                {room.name}
+              </button>
+            </li>
           {/each}
-        </ul>
-      {/if}
-    </div>
+        {/if}
+      </ul>
+      <form class="room-form" on:submit={createRoom}>
+        <label for="roomName">Create a new room</label>
+        <input
+          id="roomName"
+          type="text"
+          placeholder="e.g. Programming"
+          bind:value={newRoomName}
+          maxlength="40"
+          required
+        />
+        <button type="submit">Create room</button>
+      </form>
+    </aside>
 
-    <ul class="study-messages">
-      {#if studyMessages.length === 0}
-        <li class="empty">No messages yet. Be the first to share a study tip!</li>
-      {:else}
-        {#each studyMessages as message (message.id)}
-          <li>
-            <div class="meta">
-              <strong>{message.user}</strong>
-              <span>{formatTime(message.createdAt)}</span>
-            </div>
-            <p>{message.text}</p>
-          </li>
-        {/each}
-      {/if}
-    </ul>
+    {#if !selectedRoom}
+      <section class="study-room">
+        <p>Select a room to join the conversation.</p>
+      </section>
+    {:else}
+      <section class="study-room">
+        <header>
+          <div class="room-header">
+            <h1>{selectedRoom.name}</h1>
+            <small>#{selectedRoom.id}</small>
+          </div>
+          <button on:click={() => navigate('/profile')}>Back to Profile</button>
+        </header>
 
-    <form class="study-form" on:submit={sendStudyMessage}>
-      <input
-        type="text"
-        placeholder="Share a study tip or encourage others..."
-        bind:value={newStudyMessage}
-        required
-        maxlength="400"
-      />
-      <button type="submit">Send</button>
-    </form>
-  </section>
+        {#if roomLoading}
+          <p>Loading room...</p>
+        {:else}
+          <div class="presence">
+            <span>{onlineUsers.length} online</span>
+            {#if onlineUsers.length > 0}
+              <ul class="presence-list">
+                {#each onlineUsers as participant (participant.id)}
+                  <li>{participant.username}</li>
+                {/each}
+              </ul>
+            {/if}
+          </div>
+
+          <ul class="study-messages">
+            {#if studyMessages.length === 0}
+              <li class="empty">No messages yet. Be the first to share a study tip!</li>
+            {:else}
+              {#each studyMessages as message (message.id)}
+                <li>
+                  <div class="meta">
+                    <strong>{message.user}</strong>
+                    <span>{formatTime(message.createdAt)}</span>
+                  </div>
+                  <p>{message.text}</p>
+                </li>
+              {/each}
+            {/if}
+          </ul>
+
+          <form class="study-form" on:submit={sendStudyMessage}>
+            <input
+              type="text"
+              placeholder={`Share something with ${selectedRoom.name}...`}
+              bind:value={newStudyMessage}
+              required
+              maxlength="400"
+              disabled={roomLoading}
+            />
+            <button type="submit" disabled={roomLoading}>Send</button>
+          </form>
+        {/if}
+      </section>
+    {/if}
+  </div>
 {/if}
