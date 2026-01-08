@@ -9,7 +9,7 @@ import {
   requestPasswordReset,
   resetPassword
 } from '../controllers/authController.js'
-import { listRooms, createRoom } from '../controllers/roomController.js'
+import { listRooms, createRoom, deleteRoom } from '../controllers/roomController.js'
 
 const router = Router()
 
@@ -41,5 +41,6 @@ router.post('/api/password/reset', resetPassword)
 // Study room endpoints
 router.get('/api/rooms', isLoggedIn, listRooms)
 router.post('/api/rooms', isLoggedIn, createRoom)
+router.delete('/api/rooms/:id', isLoggedIn, deleteRoom)
 
 export default router

@@ -28,3 +28,12 @@ export async function fetchPost (endpoint, body) {
   const data = await response.json()
   return { status: response.status, ...data }
 }
+
+export async function fetchDelete (endpoint) {
+  const response = await fetch(BASE_URL + endpoint, {
+    method: 'DELETE',
+    credentials: 'include'
+  })
+  const data = await response.json().catch(() => ({}))
+  return { status: response.status, ...data }
+}

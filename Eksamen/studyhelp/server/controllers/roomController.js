@@ -52,3 +52,28 @@ export async function createRoom (req, res) {
     return res.status(500).send({ message: 'server error', error: error.message })
   }
 }
+
+export async function deleteRoom (req, res) {
+  try {
+    const roomId = Number(req.params.id)
+    if (!roomId) {
+      return res.status(400).send({ message: 'invalid room id' })
+    }
+
+    const user = await db.get('SELECT role FROM users WHERE id = ?', req.session.user.id)
+    if (!user || user.role !== 'ADMIN') {
+      return res.status(403).send({ message: 'only admins can delete rooms' })
+    }
+
+    const existing = await db.get('SELECT id FROM study_rooms WHERE id = ?', roomId)
+    if (!existing || roomId === 1) {
+      return res.status(404).send({ message: 'room not found' })
+    }
+
+    await db.run('DELETE FROM study_rooms WHERE id = ?', roomId)
+    return res.status(200).send({ message: 'room deleted', roomId })
+  } catch (error) {
+    console.error(error)
+    return res.status(500).send({ message: 'server error', error: error.message })
+  }
+}
