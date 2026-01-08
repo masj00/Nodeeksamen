@@ -12,7 +12,9 @@ await db.exec(`CREATE TABLE IF NOT EXISTS users(
   email TEXT UNIQUE NOT NULL,
   verification_code TEXT,
   verified INTEGER DEFAULT 0,
-  role TEXT DEFAULT 'USER' CHECK(role IN ('ADMIN', 'USER'))
+  role TEXT DEFAULT 'USER' CHECK(role IN ('ADMIN', 'USER')),
+  reset_token TEXT,
+  reset_expires INTEGER
 )`)
 
 await db.exec(`CREATE TABLE IF NOT EXISTS study_rooms(

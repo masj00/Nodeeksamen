@@ -10,6 +10,11 @@
   let needsVerification = false
   let verificationCode = "";
   let isSignup = false;
+  let forgotMode = false;
+  let awaitingReset = false;
+  let forgotEmail = "";
+  let resetToken = "";
+  let newPassword = "";
 
   async function handleLogin(event) {
     event.preventDefault(); 
@@ -53,6 +58,30 @@
       needsVerification = true
     } 
   }
+
+  async function handleForgotRequest (event) {
+    event.preventDefault()
+    const request = { email: forgotEmail }
+    const data = await fetchPost('/api/password/forgot', request)
+    toastrDisplayHTTPCode(data.status, data.message)
+    if (data.status === 200) {
+      awaitingReset = true
+    }
+  }
+
+  async function handlePasswordReset (event) {
+    event.preventDefault()
+    const request = { email: forgotEmail, token: resetToken, password: newPassword }
+    const data = await fetchPost('/api/password/reset', request)
+    toastrDisplayHTTPCode(data.status, data.message)
+    if (data.status === 200) {
+      awaitingReset = false
+      forgotMode = false
+      newPassword = ''
+      resetToken = ''
+      forgotEmail = ''
+    }
+  }
 </script>
 
 {#if !isSignup}
@@ -73,6 +102,17 @@
 
     <button type="button" on:click={() => isSignup = true}>
         Register New Account
+    </button>
+    <button type="button" on:click={() => {
+        forgotMode = !forgotMode;
+        awaitingReset = false;
+        resetToken = "";
+        newPassword = "";
+        if (forgotMode && email) {
+            forgotEmail = email;
+        }
+    }}>
+        {forgotMode ? "Back to Login" : "Forgot password?"}
     </button>
 </form>
 {/if}
@@ -105,6 +145,28 @@
 </form>
 {/if}
 
+{#if forgotMode}
+<section style="margin-top: 2rem;">
+    <h2>Password recovery</h2>
+    <form on:submit={handleForgotRequest}>
+        <label for="forgotEmail">Your email</label>
+        <input id="forgotEmail" type="email" bind:value={forgotEmail} required />
+        <button type="submit">Send recovery code</button>
+    </form>
+
+    {#if awaitingReset}
+        <form on:submit={handlePasswordReset} style="margin-top:1rem;">
+            <label for="resetToken">Recovery code</label>
+            <input id="resetToken" type="text" bind:value={resetToken} required />
+
+            <label for="newPassword">New password</label>
+            <input id="newPassword" type="password" bind:value={newPassword} required />
+
+            <button type="submit">Update password</button>
+        </form>
+    {/if}
+</section>
+{/if}
 
 
 {#if needsVerification}
