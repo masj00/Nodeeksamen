@@ -5,7 +5,9 @@ import {
   loginUser,
   registerUser,
   verifyUser,
-  logoutUser
+  logoutUser,
+  requestPasswordReset,
+  resetPassword
 } from '../controllers/authController.js'
 import { listRooms, createRoom } from '../controllers/roomController.js'
 
@@ -33,6 +35,8 @@ router.post('/api/login', loginUser)
 router.post('/api/users', registerUser)
 router.post('/api/vaify', verifyUser)
 router.post('/api/logout', logoutUser)
+router.post('/api/password/forgot', requestPasswordReset)
+router.post('/api/password/reset', resetPassword)
 
 // Study room endpoints
 router.get('/api/rooms', isLoggedIn, listRooms)

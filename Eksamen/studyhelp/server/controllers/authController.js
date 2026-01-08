@@ -2,7 +2,7 @@ import auth from '../util/encrypter.js'
 import db from '../db/connection.js'
 import sendMail from '../util/nodeMailer.js'
 import crypto from 'crypto'
-import { buildSignupEmail } from '../util/emailPageBuilder.js'
+import { buildSignupEmail, buildResetEmail } from '../util/emailPageBuilder.js'
 
 export async function getCurrentUser (req, res) {
   try {
@@ -105,3 +105,68 @@ export function logoutUser (req, res) {
   })
 }
 
+export async function requestPasswordReset (req, res) {
+  try {
+    const { email } = req.body
+    if (!email) {
+      return res.status(400).send({ message: 'email is required' })
+    }
+
+    const user = await db.get('SELECT id, username, email FROM users WHERE email = ?', email)
+    if (!user) {
+      return res.status(200).send({ message: 'If the email exists, recovery instructions have been sent' })
+    }
+
+    const token = crypto.randomBytes(4).toString('hex').toUpperCase()
+    const expiresAt = Date.now() + 15 * 60 * 1000 // 15 minutes
+
+    await db.run(
+      'UPDATE users SET reset_token = ?, reset_expires = ? WHERE id = ?',
+      token,
+      expiresAt,
+      user.id
+    )
+
+    const resetHTML = buildResetEmail(user.username, token)
+    sendMail(user.email, 'Password recovery', `Your recovery code is ${token}`, resetHTML)
+
+    return res.status(200).send({ message: 'If the email exists, recovery instructions have been sent' })
+  } catch (error) {
+    console.error(error)
+    return res.status(500).send({ message: 'server error', error: error.message })
+  }
+}
+
+export async function resetPassword (req, res) {
+  try {
+    const { email, token, password } = req.body
+    if (!email || !token || !password) {
+      return res.status(400).send({ message: 'missing fields' })
+    }
+
+    const user = await db.get('SELECT * FROM users WHERE email = ?', email)
+    if (
+      !user ||
+      !user.reset_token ||
+      user.reset_token !== token ||
+      !user.reset_expires ||
+      Number(user.reset_expires) < Date.now()
+    ) {
+      return res.status(400).send({ message: 'invalid or expired token' })
+    }
+
+    const hashPassword = await auth.encryptPassword(password) // reuse existing hashing helper
+    await db.run(
+      `UPDATE users
+       SET password = ?, reset_token = NULL, reset_expires = NULL
+       WHERE id = ?`,
+      hashPassword,
+      user.id
+    )
+
+    return res.status(200).send({ message: 'password updated' })
+  } catch (error) {
+    console.error(error)
+    return res.status(500).send({ message: 'server error', error: error.message })
+  }
+}
