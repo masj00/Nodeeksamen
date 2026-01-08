@@ -4,7 +4,7 @@
   import { navigate } from 'svelte-routing'
   import { io } from 'socket.io-client'
   import { user } from '../store/userStore'
-  import { fetchGet, fetchPost } from '../../util/fetchUtil'
+  import { fetchGet, fetchPost, fetchDelete } from '../../util/fetchUtil'
   import toastrDisplayHTTPCode from '../../util/ToastrUtil.js'
 
   let socket
@@ -13,6 +13,7 @@
   let rooms = []
   let roomsLoading = true
   let selectedRoom = null
+  let currentUser = null
 
   let roomLoading = false
   let studyMessages = []
@@ -30,6 +31,7 @@
       return false
     }
     user.set(response.data)
+    currentUser = response.data
     return true
   }
 
@@ -191,6 +193,22 @@
     if (!value) return ''
     return new Date(value).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
   }
+
+  async function deleteRoom (roomId) {
+    if (!roomId || !currentUser || currentUser.role !== 'ADMIN') {
+      return
+    }
+    const response = await fetchDelete(`/api/rooms/${roomId}`)
+    toastrDisplayHTTPCode(response.status, response.message)
+    if (response.status === 200) {
+      rooms = rooms.filter(room => room.id !== roomId)
+      if (selectedRoom && selectedRoom.id === roomId) {
+        selectedRoom = null
+        studyMessages = []
+        onlineUsers = []
+      }
+    }
+  }
 </script>
 
 {#if roomsLoading}
@@ -208,9 +226,20 @@
         {:else}
           {#each rooms as room (room.id)}
             <li class:selected={selectedRoom && selectedRoom.id === room.id}>
-              <button type="button" on:click={() => handleRoomSelect(room)}>
-                {room.name}
-              </button>
+              <div class="room-item">
+                <button type="button" on:click={() => handleRoomSelect(room)}>
+                  {room.name}
+                </button>
+                {#if currentUser?.role === 'ADMIN' && room.id !== 1}
+                  <button
+                    type="button"
+                    class="icon-button"
+                    on:click={() => deleteRoom(room.id)}
+                    aria-label={`Delete ${room.name}`}>
+                    ✕
+                  </button>
+                {/if}
+              </div>
             </li>
           {/each}
         {/if}
