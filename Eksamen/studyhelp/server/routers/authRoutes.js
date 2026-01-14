@@ -10,6 +10,7 @@ import {
   resetPassword
 } from '../controllers/authController.js'
 import { listRooms, createRoom, deleteRoom } from '../controllers/roomController.js'
+import { listReminders, createReminder, deleteReminder } from '../controllers/reminderController.js'
 
 const router = Router()
 
@@ -38,9 +39,14 @@ router.post('/api/logout', logoutUser)
 router.post('/api/password/forgot', requestPasswordReset)
 router.post('/api/password/reset', resetPassword)
 
-// Study room endpoints
+// Studyroom endpoints
 router.get('/api/rooms', isLoggedIn, listRooms)
 router.post('/api/rooms', isLoggedIn, createRoom)
 router.delete('/api/rooms/:id', isLoggedIn, deleteRoom)
+
+// Reminder endpoints
+router.get('/api/reminders', isLoggedIn, listReminders)
+router.post('/api/reminders', isLoggedIn, createReminder)
+router.delete('/api/reminders/:id', isLoggedIn, deleteReminder)
 
 export default router

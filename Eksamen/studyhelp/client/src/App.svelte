@@ -5,6 +5,7 @@
   import Login from './pages/Login.svelte'
   import Profile from './pages/Profile.svelte'
   import StudyRoom from './pages/StudyRoom.svelte'
+  import Calendar from './pages/Calendar.svelte'
   import { user, isAuthenticated } from './store/userStore'
   import { fetchGet } from '../util/fetchUtil.js'
 
@@ -31,6 +32,7 @@
       {#if $isAuthenticated}
         <Link to='/profile'>Profile</Link>
         <Link to='/study-room'>Study Room</Link>
+        <Link to='/calendar'>Calendar</Link>
       {/if}
     </nav>
   </header>
@@ -54,5 +56,6 @@
     <Route path='/login'><Login /></Route>
     <Route path='/profile'><Profile /></Route>
     <Route path='/study-room'><StudyRoom /></Route>
+    <Route path='/calendar'><Calendar /></Route>
   </main>
 </Router>

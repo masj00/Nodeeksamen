@@ -62,7 +62,7 @@ export async function registerUser (req, res) {
 
     const signupHTML = buildSignupEmail(username, verificationCode)
 
-    sendMail(email, 'verify signup', 'welcome to the front soldier', signupHTML)
+    sendMail(email, 'verify signup', 'welcome to the study room', signupHTML)
 
     return res.status(201).send({ message: 'User created successfully a email has been sent with the verification code' })
   } catch (error) {

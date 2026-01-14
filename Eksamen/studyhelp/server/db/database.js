@@ -33,6 +33,16 @@ await db.exec(`CREATE TABLE IF NOT EXISTS study_messages(
   FOREIGN KEY(room_id) REFERENCES study_rooms(id) ON DELETE CASCADE
 )`)
 
+await db.exec(`CREATE TABLE IF NOT EXISTS reminders(
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER NOT NULL,
+  title TEXT NOT NULL,
+  reminder_date TEXT NOT NULL,
+  reminder_time TEXT,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+)`)
+
 await db.run(
   `INSERT OR IGNORE INTO study_rooms (id, name, created_by)
    VALUES (1, 'General', 'System')`
@@ -43,6 +53,8 @@ if (clearMode) {
   await db.run('DELETE FROM study_messages')
   await db.run('DELETE FROM study_rooms')
   await db.run('DELETE FROM sqlite_sequence WHERE name IN ("study_messages", "study_rooms")')
+  await db.run('DELETE FROM reminders')
+  await db.run('DELETE FROM sqlite_sequence WHERE name = "reminders"')
   await db.run('DELETE FROM users')
   await db.run('DELETE FROM sqlite_sequence WHERE name="users"')
   console.log('Tables cleared')
