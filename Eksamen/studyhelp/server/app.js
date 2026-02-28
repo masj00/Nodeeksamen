@@ -13,6 +13,7 @@ import registerStudyRoom from './socket/studyRoom.js'
 const app = express()
 const server = http.createServer(app)
 
+// Socket server used by the study room page.
 const io = new Server(server, {
   cors: {
     origin: 'http://localhost:5173',
@@ -22,6 +23,7 @@ const io = new Server(server, {
 
 registerStudyRoom(io)
 
+// Allow session cookie from the frontend origin.
 app.use(cors({
   origin: 'http://localhost:5173',
   credentials: true
@@ -33,6 +35,7 @@ app.use(express.static('./../client/dist'))
 
 app.use(helmet())
 
+// Session is required for auth/authorization checks on protected routes.
 app.use(session({
   secret: process.env.SESSION_SECRET,
   resave: false,

@@ -161,6 +161,40 @@ button:hover {
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35);
 }
 
+.profile h2 {
+  margin-top: 1.4rem;
+  margin-bottom: 0.4rem;
+}
+
+.cookie-banner {
+  position: fixed;
+  right: 1rem;
+  bottom: 1rem;
+  z-index: 20;
+  max-width: 360px;
+  padding: 1rem;
+  border-radius: 14px;
+  background: rgba(6, 11, 21, 0.96);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.4);
+}
+
+.cookie-banner p {
+  margin: 0 0 0.8rem 0;
+}
+
+.cookie-banner div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+}
+
+.cookie-banner a {
+  color: #7dd9ff;
+  text-decoration: underline;
+}
+
 .room-layout .study-room {
   flex: 2 1 520px;
   margin-top: 0;

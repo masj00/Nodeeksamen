@@ -20,7 +20,6 @@
     event.preventDefault(); 
 
     const body = {email,password}
-    console.log(email,password)
 
     const data = await fetchPost("/api/login",body)
     toastrDisplayHTTPCode(data.status,data.message)
@@ -38,7 +37,7 @@
     event.preventDefault();
 
     const request = {email,verificationCode}
-    const data = await fetchPost("/api/vaify",request);
+    const data = await fetchPost("/api/verify",request);
     toastrDisplayHTTPCode(data.status,data.message)
 
     if (data.status === 200) {

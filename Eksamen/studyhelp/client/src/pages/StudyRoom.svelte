@@ -24,6 +24,7 @@
   const BASE_URL = import.meta.env.VITE_BASE_URL || window.location.origin
 
   async function ensureSession () {
+    // Frontend route guard: redirect to login when backend session is missing.
     const response = await fetchGet('/users/id')
     if (response.status !== 200) {
       toastrDisplayHTTPCode(response.status, response.data.message)
@@ -236,7 +237,7 @@
                     class="icon-button"
                     on:click={() => deleteRoom(room.id)}
                     aria-label={`Delete ${room.name}`}>
-                    ✕
+                    x
                   </button>
                 {/if}
               </div>

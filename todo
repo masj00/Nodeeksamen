@@ -8,7 +8,6 @@ The profile view is now the hub for real-time collaboration: after confirming th
 
 Client dependencies include socket.io-client so remember to install/update packages (client/package.json (lines 16-21), run npm install inside client). Restart the server (npm run dev in server) so the new HTTP+Socket.IO setup takes effect, and run the Vite dev server to test chatting between two browsers.
 
-I didn’t run automated tests (none defined); please exercise login + chat manually in two tabs to verify broadcasts reach everyone.)
 
 
 

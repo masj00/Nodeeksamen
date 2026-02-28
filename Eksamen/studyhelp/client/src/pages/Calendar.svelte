@@ -8,6 +8,7 @@
 
   let isReady = false
   let isLoading = false
+  let activeLoadRequest = 0
 
   let reminders = []
 
@@ -25,7 +26,7 @@
     const month = date.getMonth()
     const firstDay = new Date(year, month, 1)
     const daysInMonth = new Date(year, month + 1, 0).getDate()
-    const startIndex = (firstDay.getDay() + 6) % 7
+    const startIndex = (firstDay.getDay() + 6) % 7 //Starts on Monday
     const cells = []
 
     for (let i = 0; i < startIndex; i += 1) {
@@ -53,7 +54,7 @@
 
   const formatReminderLine = reminder =>
     reminder.reminder_time
-      ? `${formatDateLabel(reminder.reminder_date)} · ${reminder.reminder_time}`
+      ? `${formatDateLabel(reminder.reminder_date)} - ${reminder.reminder_time}`
       : formatDateLabel(reminder.reminder_date)
 
   const getMonthKey = date => `${date.getFullYear()}-${pad(date.getMonth() + 1)}`
@@ -68,9 +69,13 @@
     return acc
   }, {})
 
-  async function loadReminders (monthOverride = monthKey) {
+   async function loadReminders (monthOverride = monthKey) {
+    const requestId = ++activeLoadRequest
     isLoading = true
     const response = await fetchGet(`/api/reminders?month=${encodeURIComponent(monthOverride)}`)
+    if (requestId !== activeLoadRequest) {
+      return
+    }
     if (response.status !== 200) {
       toastrDisplayHTTPCode(response.status, response.data.message)
       reminders = []
@@ -186,7 +191,7 @@
                   class="icon-button"
                   on:click={() => deleteReminder(reminder.id)}
                   aria-label="Delete reminder">
-                  ×
+                  x
                 </button>
               </li>
             {/each}

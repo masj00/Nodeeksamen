@@ -36,6 +36,7 @@ async function fetchRecentMessages (roomId) {
 }
 
 async function saveMessage (roomId, username, text) {
+   // Keep message size bounded and only store the latest room history.
   const trimmed = text.trim().slice(0, 400)
   const result = await db.run(
     `INSERT INTO study_messages (room_id, user, text)
@@ -89,6 +90,7 @@ function roomChannel (roomId) {
 
 export default function registerStudyRoom (io) {
   io.on('connection', socket => {
+        // Join validates room, loads history, and publishes room presence.
     socket.on('study:join', async payload => {
       try {
         const roomId = Number(payload?.roomId)
@@ -121,7 +123,8 @@ export default function registerStudyRoom (io) {
         socket.emit('study:error', { message: 'Failed to join room' })
       }
     })
-
+    
+        // Message event is room-scoped through server-side socket session state.
     socket.on('study:message', async payload => {
       try {
         const context = socketSessions.get(socket.id)

@@ -1,7 +1,7 @@
 <script>
   import { onMount } from 'svelte'
   import { navigate } from 'svelte-routing'
-  import { fetchGet, fetchPost } from '../../util/fetchUtil'
+  import { fetchGet, fetchPost, fetchDelete } from '../../util/fetchUtil'
   import { user, loading } from '../store/userStore'
   import toastrDisplayHTTPCode from '../../util/ToastrUtil.js'
 
@@ -25,6 +25,19 @@
       navigate('/login')
     }
   }
+
+  async function deleteAccount () {
+    const confirmed = window.confirm('Delete your account permanently?')
+    if (!confirmed) return
+
+    const response = await fetchDelete('/api/users/me')
+    toastrDisplayHTTPCode(response.status, response.message)
+    if (response.status === 200) {
+      user.set({ username: '', email: '', role: '' })
+      loading.set(true)
+      navigate('/login')
+    }
+  }
 </script>
 
 {#if $loading}
@@ -37,5 +50,6 @@
     <p><strong>Role:</strong> {$user.role}</p>
     <button on:click={logout}>Logout</button>
     <button on:click={() => navigate('/study-room')}>Enter Study Room</button>
+    <button on:click={deleteAccount}>Delete My Account</button>
   </div>
 {/if}

@@ -6,8 +6,11 @@
   import Profile from './pages/Profile.svelte'
   import StudyRoom from './pages/StudyRoom.svelte'
   import Calendar from './pages/Calendar.svelte'
+  import Privacy from './pages/Privacy.svelte'
   import { user, isAuthenticated } from './store/userStore'
   import { fetchGet } from '../util/fetchUtil.js'
+
+  let cookieNoticeVisible = false
 
   onMount(async () => {
     const response = await fetchGet('/users/id')
@@ -16,7 +19,13 @@
     } else {
       user.set({ username: '', email: '', role: '' })
     }
+    
+    cookieNoticeVisible = !localStorage.getItem('cookie_notice_ack')
   })
+    function acceptCookieNotice () {
+    localStorage.setItem('cookie_notice_ack', 'yes')
+    cookieNoticeVisible = false
+  }
 </script>
 
 <Router>
@@ -34,6 +43,7 @@
         <Link to='/study-room'>Study Room</Link>
         <Link to='/calendar'>Calendar</Link>
       {/if}
+      <Link to='/privacy'>Privacy</Link>
     </nav>
   </header>
   <main class="page-content">
@@ -57,5 +67,16 @@
     <Route path='/profile'><Profile /></Route>
     <Route path='/study-room'><StudyRoom /></Route>
     <Route path='/calendar'><Calendar /></Route>
+    <Route path='/privacy'><Privacy /></Route>
   </main>
+  
+  {#if cookieNoticeVisible}
+    <aside class="cookie-banner">
+      <p>This site uses essential session cookies for login and protected routes.</p>
+      <div>
+        <Link to='/privacy'>Read privacy policy</Link>
+        <button type="button" on:click={acceptCookieNotice}>OK</button>
+      </div>
+    </aside>
+  {/if}
 </Router>

@@ -59,7 +59,7 @@ export async function deleteRoom (req, res) {
     if (!roomId) {
       return res.status(400).send({ message: 'invalid room id' })
     }
-
+        // Authorization example: only admins can delete rooms.
     const user = await db.get('SELECT role FROM users WHERE id = ?', req.session.user.id)
     if (!user || user.role !== 'ADMIN') {
       return res.status(403).send({ message: 'only admins can delete rooms' })

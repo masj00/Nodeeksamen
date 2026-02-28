@@ -73,6 +73,7 @@ export async function registerUser (req, res) {
 
 export async function verifyUser (req, res) {
   try {
+        // Account verification is email-code based before first login.
     const { verificationCode } = req.body
     const result = await db.all('SELECT * FROM users WHERE verification_code = ?', verificationCode)
     const user = result[0]
@@ -95,6 +96,7 @@ export async function verifyUser (req, res) {
 }
 
 export function logoutUser (req, res) {
+    // Session teardown + cookie clear.
   req.session.destroy(err => {
     if (err) {
       console.error(err)
@@ -165,6 +167,35 @@ export async function resetPassword (req, res) {
     )
 
     return res.status(200).send({ message: 'password updated' })
+  } catch (error) {
+    console.error(error)
+    return res.status(500).send({ message: 'server error', error: error.message })
+  }
+}
+
+export async function deleteCurrentUser (req, res) {
+  try {
+    const userId = req.session.user?.id
+    if (!userId) {
+      return res.status(401).send({ message: 'not authenticated' })
+    }
+
+    const existing = await db.get('SELECT id FROM users WHERE id = ?', userId)
+    if (!existing) {
+      return res.status(404).send({ message: 'user not found' })
+    }
+
+    // GDPR-related removes user from database and destroys session.
+    await db.run('DELETE FROM users WHERE id = ?', userId)
+
+    req.session.destroy(err => {
+      if (err) {
+        console.error(err)
+        return res.status(500).send({ message: 'failed to complete account deletion' })
+      }
+      res.clearCookie('connect.sid')
+      return res.status(200).send({ message: 'account deleted' })
+    })
   } catch (error) {
     console.error(error)
     return res.status(500).send({ message: 'server error', error: error.message })

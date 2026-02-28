@@ -7,4 +7,6 @@ const connection = await open({
   driver: sqlite3.Database
 })
 
+await connection.exec('PRAGMA foreign_keys = ON')
+
 export default connection
