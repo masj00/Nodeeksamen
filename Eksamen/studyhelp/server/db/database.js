@@ -17,6 +17,18 @@ await db.exec(`CREATE TABLE IF NOT EXISTS users(
   reset_expires INTEGER
 )`)
 
+const userColumns = await db.all(`PRAGMA table_info(users)`)
+const hasResetToken = userColumns.some((column) => column.name === 'reset_token')
+const hasResetExpires = userColumns.some((column) => column.name === 'reset_expires')
+
+if (!hasResetToken) {
+  await db.exec(`ALTER TABLE users ADD COLUMN reset_token TEXT`)
+}
+
+if (!hasResetExpires) {
+  await db.exec(`ALTER TABLE users ADD COLUMN reset_expires INTEGER`)
+}
+
 await db.exec(`CREATE TABLE IF NOT EXISTS study_rooms(
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   name TEXT UNIQUE NOT NULL,
