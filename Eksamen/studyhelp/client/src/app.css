@@ -377,9 +377,21 @@ button:hover {
 .study-messages .meta {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   font-size: 0.85rem;
   color: rgba(255, 255, 255, 0.6);
   margin-bottom: 0.35rem;
+}
+
+.study-messages .meta-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.study-messages .meta-actions .icon-button {
+  width: 28px;
+  height: 28px;
 }
 
 .study-messages .empty {

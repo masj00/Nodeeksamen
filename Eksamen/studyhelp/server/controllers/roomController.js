@@ -77,3 +77,28 @@ export async function deleteRoom (req, res) {
     return res.status(500).send({ message: 'server error', error: error.message })
   }
 }
+
+export async function deleteMessage (req, res) {
+  try {
+    const messageId = Number(req.params.id)
+    if (!messageId) {
+      return res.status(400).send({ message: 'invalid message id' })
+    }
+
+    const user = await db.get('SELECT role FROM users WHERE id = ?', req.session.user.id)
+    if (!user || user.role !== 'ADMIN') {
+      return res.status(403).send({ message: 'only admins can delete messages' })
+    }
+
+    const existing = await db.get('SELECT id FROM study_messages WHERE id = ?', messageId)
+    if (!existing) {
+      return res.status(404).send({ message: 'message not found' })
+    }
+
+    await db.run('DELETE FROM study_messages WHERE id = ?', messageId)
+    return res.status(200).send({ message: 'message deleted', messageId })
+  } catch (error) {
+    console.error(error)
+    return res.status(500).send({ message: 'server error', error: error.message })
+  }
+}

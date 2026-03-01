@@ -12,11 +12,14 @@ import registerStudyRoom from './socket/studyRoom.js'
 
 const app = express()
 const server = http.createServer(app)
+const CLIENT_DIST_PATH = path.resolve('../client/dist')
+const FRONTEND_ORIGIN = process.env.FRONTEND_ORIGIN || 'http://localhost:5173'
+const isProduction = process.env.NODE_ENV === 'production'
 
 // Socket server used by the study room page.
 const io = new Server(server, {
   cors: {
-    origin: 'http://localhost:5173',
+    origin: FRONTEND_ORIGIN,
     credentials: true
   }
 })
@@ -25,13 +28,13 @@ registerStudyRoom(io)
 
 // Allow session cookie from the frontend origin.
 app.use(cors({
-  origin: 'http://localhost:5173',
+  origin: FRONTEND_ORIGIN,
   credentials: true
 }))
 
 app.use(express.json())
 
-app.use(express.static('./../client/dist'))
+app.use(express.static(CLIENT_DIST_PATH))
 
 app.use(helmet())
 
@@ -39,8 +42,12 @@ app.use(helmet())
 app.use(session({
   secret: process.env.SESSION_SECRET,
   resave: false,
-  saveUninitialized: true,
-  cookie: { secure: false }
+  saveUninitialized: false,
+  cookie: {
+    secure: isProduction,
+    httpOnly: true,
+    sameSite: isProduction ? 'none' : 'lax'
+  }
 }))
 
 const generalLimiter = rateLimit({
@@ -56,11 +63,11 @@ app.use(generalLimiter)
 app.use(authRouthes)
 
 app.get('/', (req, res) => {
-  res.send({ data: 'hello' })
+  res.sendFile(path.join(CLIENT_DIST_PATH, 'index.html'))
 })
 
 app.get('/{*splat}', (req, res) => {
-  res.sendFile(path.resolve('../client/dist/index.html'))
+  res.sendFile(path.join(CLIENT_DIST_PATH, 'index.html'))
 })
 
 app.all('/{*splat}', (req, res) => {

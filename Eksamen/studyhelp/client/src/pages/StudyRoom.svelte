@@ -210,6 +210,18 @@
       }
     }
   }
+
+    async function deleteStudyMessage (messageId) {
+    if (!messageId || !currentUser || currentUser.role !== 'ADMIN') {
+      return
+    }
+
+    const response = await fetchDelete(`/api/messages/${messageId}`)
+    toastrDisplayHTTPCode(response.status, response.message)
+    if (response.status === 200) {
+      studyMessages = studyMessages.filter(message => message.id !== messageId)
+    }
+  }
 </script>
 
 {#if roomsLoading}
@@ -287,7 +299,7 @@
             {/if}
           </div>
 
-          <ul class="study-messages">
+           <ul class="study-messages">
             {#if studyMessages.length === 0}
               <li class="empty">No messages yet. Be the first to share a study tip!</li>
             {:else}
@@ -295,7 +307,18 @@
                 <li>
                   <div class="meta">
                     <strong>{message.user}</strong>
-                    <span>{formatTime(message.createdAt)}</span>
+                    <div class="meta-actions">
+                      <span>{formatTime(message.createdAt)}</span>
+                      {#if currentUser?.role === 'ADMIN'}
+                        <button
+                          type="button"
+                          class="icon-button"
+                          on:click={() => deleteStudyMessage(message.id)}
+                          aria-label={`Delete message ${message.id}`}>
+                          x
+                        </button>
+                      {/if}
+                    </div>
                   </div>
                   <p>{message.text}</p>
                 </li>
